@@ -1,0 +1,16 @@
+/*! Copyright (c) 2013 Liz Chow (http://www.liz-zero.org)
+ * Licensed under the MIT License (LICENSE.txt).
+ *
+ *
+ * Version: 1.0.0
+ */
+
+.marquee-wrap,
+.marquee-item {
+	margin:0;
+	padding:0;
+}
+
+.marquee-wrap {
+	list-style:none;
+}
