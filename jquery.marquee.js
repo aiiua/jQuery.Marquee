@@ -121,16 +121,7 @@ $.fn.marquee = (function(){
 	
 	Marquee.start = function(){
 		if(timerId) return;
-		
-		if(requestAnimationFrame){
-			timerId = true;
-			requestAnimationFrame(function(){
-				if(timerId) requestAnimationFrame(arguments.callee);
-				Marquee.tick();
-			});
-		}else{
-			timerId = setInterval(Marquee.tick, Marquee.interval);
-		}
+		timerId = setInterval(Marquee.tick, Marquee.interval);
 	}
 	
 	Marquee.remove = function(timer){
@@ -149,12 +140,8 @@ $.fn.marquee = (function(){
 	}
 	
 	Marquee.stop = function(){
-		if(timerId === true){
-			timerId = false;
-		}else{
-			clearInterval(timerId);
-			timerId = null;
-		}
+		clearInterval(timerId);
+		timerId = null;
 	}
 	
 	return function(options){
