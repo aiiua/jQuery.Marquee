@@ -145,6 +145,19 @@ $.fn.marquee = (function(){
 	}
 	
 	return function(options){
+		if($.type(options) == 'string'){
+			var marquee = this.data('marquee');
+			if(!marquee) return;
+			
+			marquee[options] && marquee[options]();
+			
+			if(options == 'reset'){
+				this.removeData('marquee');
+			}
+			
+			return this;
+		}
+	
 		options = $.extend({
 			speed : 1,
 			autoPlay : true,
