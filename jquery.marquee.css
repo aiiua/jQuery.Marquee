@@ -1,3 +1,4 @@
+@charset "utf-8";
 /*! Copyright (c) 2013 Liz Chow (http://www.liz-zero.org)
  * Licensed under the MIT License (LICENSE.txt).
  *
@@ -5,12 +6,22 @@
  * Version: 1.0.0
  */
 
-.marquee-wrap,
-.marquee-item {
+.marquee-wraper,
+.marquee-shadow {
 	margin:0;
 	padding:0;
 }
 
-.marquee-wrap {
-	list-style:none;
+.marquee-wraper {
+	overflow: hidden;
+}
+
+.marquee-horizontal {
+	font-size: 0;
+}
+
+.marquee-horizontal .marquee-shadow {
+	display: inline-block;
+	*display: inline;
+	*zoom: 1;
 }

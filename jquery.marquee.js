@@ -1,175 +1,161 @@
-/*! Copyright (c) 2013 Liz Chow (http://www.liz-zero.org)
- * Licensed under the MIT License (LICENSE.txt).
- *
- *
- * Version: 1.0.0
- * 
- * Requires: jQuery 1.7.2+
- */
+/*
+	by liz
+	Requires: jQuery 1.7.2+
+*/
+
 (function($, window, undefined){
 
-$.fn.marquee = (function(){
+var htmlTmpl = [
+		'<div class="marquee-wraper">',
+			'<div class="marquee-shadow">{orig}</div>',
+			'<div class="marquee-shadow">{orig}</div>',
+		'</div>'
+	].join(''),
 
-	var timerId,
+	defaults = {
+		horizontal : false,
+		speed : 1,
+		autoPlay : true,
+		hover : true
+	};
+
+function Marquee($el, options){
+	var self = this;
+
+	this.options = $.extend({}, defaults, options || {});
+	this.started = false;
+	this.horizontal = this.options.horizontal;
+
+
+	this.$marquee = $el;
+
+	this.orig = $.trim(this.$marquee.html());
+	this.html = htmlTmpl.replace(/{orig}/g, this.orig);
 	
-		htmlTmpl = [
-			'<ul class="marquee-wrap">',
-				'<li class="marquee-item">{orig}</li>',
-				'<li class="marquee-item">{orig}</li>',
-			'</ul>'
-		].join('');
-	
-	function Marquee($el, options){
-	
-		this.options = options;
-		this.started = false;
-	
-		this.$marquee = $el;
-		this.orig = $.trim(this.$marquee.html());
-		this.html = htmlTmpl.replace(/{orig}/g, this.orig);
-		
-		var $wraper = $(this.html).prependTo(this.$marquee.empty()),
-			innerHeight  = $wraper.find('li.marquee-item').height(),
-			outerHeight = options.height || (options.height = innerHeight);
-		
-		if(innerHeight < outerHeight){
-			this.$marquee.html(this.orig);
-			return;
+	this.$wraper = $(this.html);
+	this.$marquee.empty().append(this.$wraper);
+
+	function setLayout(dimension){
+		var $marquee = self.$marquee,
+			$wraper = self.$wraper,
+			$shadow = $wraper.find('.marquee-shadow');
+
+		self.inner = $shadow[dimension]();
+		self.outer = self.options[dimension] || (self.options[dimension] = self.inner);
+
+		if(self.inner < self.outer){
+			$marquee.html(self.orig);
+			return false;
 		}
-		
-		this.$marquee.css({
-			height:outerHeight,
-			overflow:'hidden'
-		});
-		
-		this.bind();
-		
-		var self = this;
-		
+
+		$wraper[dimension](self.outer);
+
+		return true;
+	}
+
+
+	if(!this.horizontal){
+		if(!setLayout('height')) return;
+
 		this.scroll = function(){
-			var top = self.$marquee.scrollTop(),
-				speed = self.options.speed;
+			var top = this.$wraper.scrollTop(),
+				max = this.inner,
+				speed = this.options.speed;
 			
 			top += speed;
-			if(top >= innerHeight) top = 0;
+			if(top >= max) top = 0;
 
-			self.$marquee.scrollTop(top);
-		}
-		
-		if(options.autoPlay){
-			this.start();
-		}
+			this.$wraper.scrollTop(top);
+		};
+	}else{
+		this.$wraper.wrapInner('<div class="marquee-horizontal" />');
+
+		if(!setLayout('width')) return;
+
+		this.$wraper.find('.marquee-horizontal').width(2 * this.inner);
+
+
+		this.scroll = function(){
+			var left = this.$wraper.scrollLeft(),
+				max = this.inner,
+				speed = this.options.speed;
+			
+			left += speed;
+			if(left >= max) left = 0;
+
+			this.$wraper.scrollLeft(left);
+		};
 	}
+
+	this.bind();
 	
-	Marquee.prototype = {
-		start : function(){
-			if(this.started) return;
-			
-			Marquee.add(this.scroll);
-			this.started = true;
-		},
+	if(this.options.autoPlay){
+		this.start();
+	}
+}
+
+Marquee.prototype = {
+	
+	start : function(){
+		if(this.started) return;
 		
-		stop : function(){
-			if(!this.started) return
-			
-			Marquee.remove(this.scroll);
-			this.started = false;
-		},
+		Ticker.add(this.scroll, this);
+		this.started = true;
+	},
+	
+	stop : function(){
+		if(!this.started) return
 		
-		bind : function(){
-			if(!this.options.hover) return;
-			
+		Ticker.remove(this.scroll);
+		this.started = false;
+	},
+	
+	bind : function(){
+		this.$marquee
+		.on('stop.marquee', $.proxy(this.stop, this))
+		.on('start.marquee', $.proxy(this.start, this));
+
+		if(this.options.hover){
 			this.$marquee
-			.on('mouseenter.marquee', $.proxy(this.stop, this))
-			.on('mouseleave.marquee', $.proxy(this.start, this));
-		},
+			.on('mouseenter.marquee', function(){
+				$(this).trigger('stop.marquee');
+			})
+			.on('mouseleave.marquee', function(){
+				$(this).trigger('start.marquee');
+			});
+		}
+	},
+	
+	unbind : function(){
+		this.$marquee.off('.marquee');
+	},
+	
+	reset : function(){
+		this.unbind();
+		this.stop();
 		
-		unbind : function(){
-			this.$marquee.off('.marquee');
-		},
+		this.$marquee.html(this.orig);
+	}
+}
+
+$.fn.marquee = function(options){
+	if($.type(options) == 'string'){
+		var marquee = this.data('marquee');
+		if(!marquee) return;
 		
-		reset : function(){
-			this.unbind();
-			this.stop();
-			
-			this.$marquee.html(this.orig);
-			this.$marquee.removeAttr('style');
-			this.$marquee.scrollTop(0);
+		marquee[options] && marquee[options]();
+		
+		if(options == 'reset'){
+			this.removeData('marquee');
 		}
 		
+		return this;
 	}
-	
-	
-	Marquee.timers = [];
-	
-	Marquee.tick = function(){
-		var timer,
-			timers = Marquee.timers;
-			
-		for(var i = 0, j = timers.length; i < j; i++){
-			timer = timers[i];
-			timer();
-		}
-	}
-	
-	Marquee.add = function(timer){
-		Marquee.timers.push(timer);
-		Marquee.start();
-	}
-	
-	Marquee.interval = 1000 / 60;
-	
-	Marquee.start = function(){
-		if(timerId) return;
-		timerId = setInterval(Marquee.tick, Marquee.interval);
-	}
-	
-	Marquee.remove = function(timer){
-		var timers = Marquee.timers;
-		
-		for(var i = 0, j = timers.length; i < j; i++){
-			if(timer === timers[i]){
-				timers.splice(i, 1);
-				break;
-			}
-		}
-		
-		if(!timers.length){
-			Marquee.stop();
-		}
-	}
-	
-	Marquee.stop = function(){
-		clearInterval(timerId);
-		timerId = null;
-	}
-	
-	return function(options){
-		if($.type(options) == 'string'){
-			var marquee = this.data('marquee');
-			if(!marquee) return;
-			
-			marquee[options] && marquee[options]();
-			
-			if(options == 'reset'){
-				this.removeData('marquee');
-			}
-			
-			return this;
-		}
-	
-		options = $.extend({
-			speed : 1,
-			autoPlay : true,
-			hover : true
-		}, options || {});
-		
-		return this.each(function(){
-			var $el = $(this);
-			$el.data('marquee', new Marquee($el, options));
-		});
-	}
-	
-})();
+
+	return this.each(function(){
+		var $el = $(this);
+		$el.data('marquee', new Marquee($el, options));
+	});
+};
 		
 })(jQuery, window)

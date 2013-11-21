@@ -9,13 +9,30 @@
 			p {
 				margin:0;
 				padding:0;
+				font-size: 14px;
 			}
 			
+			.clr {
+				display: block;
+				height: 0;
+				line-height: 0;
+				overflow: hidden;
+				clear: both;
+				font-size: 0;
+				visibility: hidden;
+			}
+
 			.marquee {
 				width:208px;
 				float:left;
 			}
+
+			.marquee7 {
+				width: auto;
+				float: none;
+			}
 		</style>
+		<script type="text/javascript" src="ticker.js"></script>
 		<script type="text/javascript" src="lib/jquery-1.7.2.min.js"></script>
 		<script type="text/javascript" src="jquery.marquee.js"></script>
 		<script type="text/javascript">
@@ -27,6 +44,7 @@
 			$('.marquee4').marquee({speed:8});
 			$('.marquee5').marquee({speed:10});
 			$('.marquee6').marquee({speed:12, hover:false});
+			$('.marquee7').marquee({speed:1, horizontal:true, width:300});
 			
 		});
 		</script>
@@ -127,6 +145,10 @@
 			<p>这是一个测试性的动画效果</p>
 			<p>这是一个测试性的动画效果</p>
 			<p>这是一个测试性的动画效果</p>
+		</div>
+		<div class="clr"></div>
+		<div class="marquee marquee7">
+			<p>这是一个测试性的动画效果这是一个测试性的动画效果这是一个测试性的动画效果这是一个测试性的动画效果这是一个测试性的动画效果</p>
 		</div>
 	</body>
 </html>
